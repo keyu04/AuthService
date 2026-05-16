@@ -20,6 +20,9 @@ namespace AuthMicroService.Migrations
                     FirstName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     LastName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ProfilePath = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Provider = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ThemePreference = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Password = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },

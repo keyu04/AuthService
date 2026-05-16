@@ -13,7 +13,7 @@ namespace AuthMicroService.Services.Implementations;
 public class AuthService(IAuthRepositories authRepositories) : IAuthService
 {
     public readonly IAuthRepositories _authRepositories = authRepositories;
-    public async Task<string> googleAuthentication(AuthLoginModel authLoginModel)
+    public async Task<string> GoogleAuthentication(AuthLoginModel authLoginModel)
     {
         try
         {
@@ -34,6 +34,9 @@ public class AuthService(IAuthRepositories authRepositories) : IAuthService
                     LastName = payload.FamilyName,
                     Email = payload.Email,
                     ProfilePath = payload.Picture,
+                    Provider = "Google",
+                    ThemePreference = "Light",
+                    Status = "Active"
                 };
                 await _authRepositories.UserRegister(user);
             }
@@ -57,12 +60,18 @@ public class AuthService(IAuthRepositories authRepositories) : IAuthService
         return payload;
     }
 
-    public string TokenGenerator(GoogleJsonWebSignature.Payload? payload, string user)
+    public string TokenGenerator(GoogleJsonWebSignature.Payload? payload, UserSession? user)
     {
         var claims = new[]
         {
-            new Claim(ClaimTypes.Sid,payload!.Subject.ToString()),
-            new Claim(ClaimTypes.Name,user.ToString())
+            new Claim("SubjectId", payload?.Subject ?? string.Empty),
+            new Claim(ClaimTypes.Name, user?.FirstName ?? payload?.GivenName ?? string.Empty),
+            new Claim(ClaimTypes.Surname, user?.LastName ?? payload?.FamilyName ?? string.Empty),
+            new Claim(ClaimTypes.Email, user?.Email ?? payload?.Email ?? string.Empty),
+            new Claim("Provider", user?.Provider ?? string.Empty),
+            new Claim("ThemePreference", user?.ThemePreference ?? string.Empty),
+            new Claim("Status", user?.Status ?? string.Empty),
+            new Claim("ProfilePath", user?.ProfilePath ?? payload?.Picture ?? string.Empty)
         };
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Settings.JwtSecreteKey!));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -78,7 +87,7 @@ public class AuthService(IAuthRepositories authRepositories) : IAuthService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    public async Task<string> userRegister(UserRegister userRegister)
+    public async Task<string> UserRegister(UserRegister userRegister)
     {
         try
         {
@@ -86,6 +95,10 @@ public class AuthService(IAuthRepositories authRepositories) : IAuthService
             {
                 FirstName = userRegister.FirstName,
                 LastName = userRegister.LastName,
+                Status = userRegister.Status,
+                ThemePreference = userRegister.ThemePreference,
+                Provider = userRegister.Provider,
+                ProfilePath = userRegister.ProfilePath,
                 Email = userRegister.Email,
                 Password = userRegister.Password
             };
@@ -98,7 +111,7 @@ public class AuthService(IAuthRepositories authRepositories) : IAuthService
         }
     }
 
-    public async Task<string> userLogin(LoginCheck loginCheck)
+    public async Task<string> UserLogin(LoginCheck loginCheck)
     {
         try
         {
@@ -117,4 +130,18 @@ public class AuthService(IAuthRepositories authRepositories) : IAuthService
             throw;
         }
     }
+
+    public async Task<UserSession> GetUserByEmail(string email)
+    {
+        try
+        {
+            var result = await _authRepositories.GetUserByEmail(email);
+            return result;
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
+
 }

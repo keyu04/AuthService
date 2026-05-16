@@ -1,3 +1,4 @@
+using AuthMicroService.DTOs;
 using AuthMicroService.Models;
 using AuthMicroService.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +18,6 @@ public class AuthRepositories(AppDbContext appDbContext) : IAuthRepositories
             {
                 return string.Empty;
             }
-
             return "result";
         }
         catch (Exception)
@@ -39,16 +39,51 @@ public class AuthRepositories(AppDbContext appDbContext) : IAuthRepositories
         }
     }
 
-    public async Task<string> LoginCheck(User user)
+    public async Task<UserSession> LoginCheck(User user)
     {
         try
         {
             var result = await _appDbContext.Users.FirstOrDefaultAsync(u => u.Email == user.Email && u.Password == user.Password);
             if (result == null)
             {
-                return string.Empty;
+                return new UserSession();
             }
-            return null!;
+            return new UserSession
+            {
+                Email = result.Email,
+                FirstName = result.FirstName,
+                LastName = result.LastName,
+                Provider = result.Provider,
+                ThemePreference = result.ThemePreference,
+                Status = result.Status,
+                ProfilePath = result.ProfilePath
+            };
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
+
+    public async Task<UserSession> GetUserByEmail(string email)
+    {
+        try
+        {
+            var result = await _appDbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (result == null)
+            {
+                return new UserSession();
+            }
+            return new UserSession
+            {
+                Email = result.Email,
+                FirstName = result.FirstName,
+                LastName = result.LastName,
+                Provider = result.Provider,
+                ThemePreference = result.ThemePreference,
+                Status = result.Status,
+                ProfilePath = result.ProfilePath
+            };
         }
         catch (Exception)
         {

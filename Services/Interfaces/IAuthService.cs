@@ -4,7 +4,8 @@ namespace AuthMicroService.Services.Interfaces;
 
 public interface IAuthService
 {
-    public Task<string> googleAuthentication(AuthLoginModel authLoginModel);
-    public Task<string> userRegister(UserRegister userRegister);
-    public Task<string> userLogin(LoginCheck loginCheck);
+    public Task<string> GoogleAuthentication(AuthLoginModel authLoginModel);
+    public Task<string> UserRegister(UserRegister userRegister);
+    public Task<string> UserLogin(LoginCheck loginCheck);
+    public Task<UserSession> GetUserByEmail(string email);
 }

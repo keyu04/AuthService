@@ -17,16 +17,26 @@ public class LoginCheck
 
 public class UserRegister
 {
-    public int Id { set; get; }
 
-    [Required]
-    public string? ExternalID { set; get; }
-    [Required]
     public string? FirstName { set; get; }
     public string? LastName { set; get; }
-    public string? ProfilePath { set; get; }
+    public string? Provider { set; get; } = string.Empty;
+    public string? ThemePreference { set; get; } = "Light";
+    public string? Status { set; get; } = "Active";
+    public string? ProfilePath { set; get; } = string.Empty;
     [Required]
     public string? Email { set; get; }
+    [Required]
     public string? Password { set; get; }
+}
 
+public class UserSession
+{
+    public string? Email { set; get; }
+    public string? FirstName { set; get; }
+    public string? LastName { set; get; }
+    public string? Provider { set; get; }
+    public string? ThemePreference { set; get; }
+    public string? Status { set; get; }
+    public string? ProfilePath { set; get; }
 }

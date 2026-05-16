@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AuthMicroService.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260516101446_init")]
+    [Migration("20260516145137_init")]
     partial class init
     {
         /// <inheritdoc />
@@ -47,6 +47,15 @@ namespace AuthMicroService.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ProfilePath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Provider")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ThemePreference")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");

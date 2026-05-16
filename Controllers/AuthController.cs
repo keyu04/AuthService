@@ -1,8 +1,11 @@
 namespace AuthMicroService.Controllers;
 
+using AuthMicroService.Common.Constants;
+using AuthMicroService.Common.Helpers;
 using AuthMicroService.DTOs;
 using AuthMicroService.Models;
 using AuthMicroService.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -16,12 +19,12 @@ public class AuthController(IAuthService AuthMicroService) : ControllerBase
     {
         try
         {
-            var result = await _AuthMicroService.userRegister(userRegister);
-            return Ok(result);
+            var result = await _AuthMicroService.UserRegister(userRegister);
+            return Ok(ResponseHelper.Success<string>(result, LogConst.UserRegisterSuccess));
         }
         catch (Exception ex)
         {
-            return StatusCode(500, ex.Message); // ← now you will SEE the real error
+            return StatusCode(500, ResponseHelper.Failure(ex.Message));
         }
     }
 
@@ -30,14 +33,14 @@ public class AuthController(IAuthService AuthMicroService) : ControllerBase
     {
         try
         {
-            var result = await _AuthMicroService.googleAuthentication(authLoginModel);
+            var result = await _AuthMicroService.GoogleAuthentication(authLoginModel);
             if (result == string.Empty)
                 return NoContent();
-            return Ok(result);
+            return Ok(ResponseHelper.Success<string>(result, LogConst.GoogleLoginSuccess));
         }
         catch (Exception ex)
         {
-            return StatusCode(500, ex.Message);
+            return StatusCode(500, ResponseHelper.Failure(ex.Message));
         }
     }
 
@@ -46,12 +49,29 @@ public class AuthController(IAuthService AuthMicroService) : ControllerBase
     {
         try
         {
-            var result = await _AuthMicroService.userLogin(loginCheck);
-            return Ok(result);
+            var result = await _AuthMicroService.UserLogin(loginCheck);
+            return Ok(ResponseHelper.Success<string>(result, LogConst.UserLoginSuccess));
         }
         catch (Exception ex)
         {
-            return StatusCode(500, ex.Message);
+            return StatusCode(500, ResponseHelper.Failure(ex.Message));
+        }
+    }
+
+    [Authorize]
+    [HttpGet("GetUserByEmail/{email}")]
+    public async Task<ActionResult> GetUserByEmail(string email)
+    {
+        try
+        {
+            var user = await _AuthMicroService.GetUserByEmail(email);
+            if (user == null)
+                return NotFound();
+            return Ok(ResponseHelper.Success(user, LogConst.GetUserByEmailSuccess));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ResponseHelper.Failure(ex.Message));
         }
     }
 }

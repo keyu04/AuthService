@@ -46,6 +46,15 @@ namespace AuthMicroService.Migrations
                     b.Property<string>("ProfilePath")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Provider")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ThemePreference")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.ToTable("Users");
