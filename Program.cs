@@ -5,6 +5,7 @@ using AuthMicroService.Repositories.Implementations;
 using AuthMicroService.Repositories.Interfaces;
 using AuthMicroService.Services.Implementations;
 using AuthMicroService.Services.Interfaces;
+using JobPortalAPI.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Console;
@@ -90,6 +91,8 @@ builder.Logging.AddConsoleFormatter<CustomConsoleLogger, ConsoleFormatterOptions
 builder.Logging.AddDebug();
 
 var app = builder.Build();
+
+app.UseMiddleware<GlobalExeptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
