@@ -92,7 +92,7 @@ builder.Logging.AddDebug();
 
 var app = builder.Build();
 
-app.UseMiddleware<GlobalExeptionMiddleware>();
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

@@ -5,13 +5,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace JobPortalAPI.Middlewares;
 
-public class GlobalExeptionMiddleware
+public class GlobalExceptionMiddleware
 {
     private readonly RequestDelegate _next;
-    private readonly ILogger<GlobalExeptionMiddleware> _logger;
+    private readonly ILogger<GlobalExceptionMiddleware> _logger;
     private readonly IWebHostEnvironment _env;
 
-    public GlobalExeptionMiddleware(RequestDelegate next, ILogger<GlobalExeptionMiddleware> logger, IWebHostEnvironment env)
+    public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger, IWebHostEnvironment env)
     {
         _next = next;
         _logger = logger;
