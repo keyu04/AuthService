@@ -1,4 +1,4 @@
-namespace AuthMicroService.Common.Models;
+namespace AuthMicroService.Common.DTOs;
 
 public class ApiResponse<T>
 {

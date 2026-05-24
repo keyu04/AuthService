@@ -1,5 +1,5 @@
 using AuthMicroService.Common.Constants;
-using AuthMicroService.Common.Models;
+using AuthMicroService.Common.DTOs;
 
 namespace AuthMicroService.Common.Helpers;
 
