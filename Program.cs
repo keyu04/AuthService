@@ -1,4 +1,5 @@
 using System.Text;
+using Asp.Versioning;
 using AuthMicroService.Common.Logger;
 using AuthMicroService.Common.Settings;
 using AuthMicroService.Repositories.Implementations;
@@ -7,6 +8,7 @@ using AuthMicroService.Services.Implementations;
 using AuthMicroService.Services.Interfaces;
 using JobPortalAPI.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Console;
 using Microsoft.IdentityModel.Tokens;
@@ -77,6 +79,44 @@ builder.Services.AddControllers();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAuthRepositories, AuthRepositories>();
 
+// ── API Versioning ────────────────────────────────────────────────
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
+})
+.AddMvc()
+.AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'V";
+    options.SubstituteApiVersionInUrl = true;
+});
+
+builder.Services.AddRateLimiter(options =>
+{
+    // ── Very strict — login/register are the highest-risk endpoints in your entire system ──
+    options.AddFixedWindowLimiter("auth-strict", config =>
+    {
+        config.Window = TimeSpan.FromMinutes(1);
+        config.PermitLimit = 5;     // ← only 5 login attempts per minute per IP
+        config.QueueLimit = 0;
+    });
+
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.StatusCode = 429;
+        context.HttpContext.Response.ContentType = "application/json";
+
+        await context.HttpContext.Response.WriteAsync("""
+        {
+            "status": false,
+            "Message": "Too many attempts. Please try again in a minute.",
+            "Code": "AUTH_SERVICE_429"
+        }
+        """, cancellationToken);
+    };
+});
 
 builder.Logging.ClearProviders();
 

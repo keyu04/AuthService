@@ -39,25 +39,14 @@ public class AuthRepositories(AppDbContext appDbContext) : IAuthRepositories
         }
     }
 
-    public async Task<UserSession> LoginCheck(User user)
+    public async Task<User?> GetUserForLogin(string email)
     {
         try
         {
-            var result = await _appDbContext.Users.FirstOrDefaultAsync(u => u.Email == user.Email && u.Password == user.Password);
-            if (result == null)
-            {
-                return new UserSession();
-            }
-            return new UserSession
-            {
-                Email = result.Email,
-                FirstName = result.FirstName,
-                LastName = result.LastName,
-                Provider = result.Provider,
-                ThemePreference = result.ThemePreference,
-                Status = result.Status,
-                ProfilePath = result.ProfilePath
-            };
+            var result = await _appDbContext.Users
+                .FirstOrDefaultAsync(u => u.Email == email);
+
+            return result;
         }
         catch (Exception)
         {
@@ -67,27 +56,20 @@ public class AuthRepositories(AppDbContext appDbContext) : IAuthRepositories
 
     public async Task<UserSession> GetUserByEmail(string email)
     {
-        try
+        var result = await _appDbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+        if (result is null)
         {
-            var result = await _appDbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
-            if (result == null)
-            {
-                return new UserSession();
-            }
-            return new UserSession
-            {
-                Email = result.Email,
-                FirstName = result.FirstName,
-                LastName = result.LastName,
-                Provider = result.Provider,
-                ThemePreference = result.ThemePreference,
-                Status = result.Status,
-                ProfilePath = result.ProfilePath
-            };
+            return null!;
         }
-        catch (Exception)
+        return new UserSession
         {
-            throw;
-        }
+            Email = result.Email,
+            FirstName = result.FirstName,
+            LastName = result.LastName,
+            Provider = result.Provider,
+            ThemePreference = result.ThemePreference,
+            Status = result.Status,
+            ProfilePath = result.ProfilePath
+        };
     }
 }
