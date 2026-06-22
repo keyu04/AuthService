@@ -15,39 +15,33 @@ public class AuthService(IAuthRepositories authRepositories) : IAuthService
     public readonly IAuthRepositories _authRepositories = authRepositories;
     public async Task<string> GoogleAuthentication(AuthLoginModel authLoginModel)
     {
-        try
+        var payload = await verifyGoogleToken(authLoginModel.Token!);
+
+        if (payload == null)
         {
-            var payload = await verifyGoogleToken(authLoginModel.Token!);
-
-            if (payload == null)
-            {
-                return string.Empty;
-            }
-
-            var result = await _authRepositories.UserLogin(payload.Subject);
-            if (result == string.Empty)
-            {
-                var user = new User()
-                {
-                    ExternalID = payload.Subject,
-                    FirstName = payload.GivenName,
-                    LastName = payload.FamilyName,
-                    Email = payload.Email,
-                    ProfilePath = payload.Picture,
-                    Provider = "Google",
-                    ThemePreference = "Light",
-                    Status = "Active"
-                };
-                await _authRepositories.UserRegister(user);
-            }
-
-            var token = TokenGenerator(payload, null!);
-            return token;
+            return string.Empty;
         }
-        catch (Exception ex)
+
+        var result = await _authRepositories.UserLogin(payload.Subject);
+        if (result == string.Empty)
         {
-            throw new Exception("googleAuthentication Fail" + ex.Message);
+            var user = new User()
+            {
+                ExternalID = payload.Subject,
+                FirstName = payload.GivenName,
+                LastName = payload.FamilyName,
+                Email = payload.Email,
+                ProfilePath = payload.Picture,
+                Provider = "Google",
+                ThemePreference = "Light",
+                Status = "Active"
+            };
+            await _authRepositories.UserRegister(user);
         }
+
+        var token = TokenGenerator(payload, null!);
+        return token;
+
     }
     public async Task<GoogleJsonWebSignature.Payload> verifyGoogleToken(string token)
     {
@@ -100,7 +94,7 @@ public class AuthService(IAuthRepositories authRepositories) : IAuthService
                 Provider = userRegister.Provider,
                 ProfilePath = userRegister.ProfilePath,
                 Email = userRegister.Email,
-                Password = userRegister.Password
+                Password = BCrypt.Net.BCrypt.HashPassword(userRegister.Password)
             };
             await _authRepositories.UserRegister(user);
             return "User Registered Successfully";
@@ -113,22 +107,29 @@ public class AuthService(IAuthRepositories authRepositories) : IAuthService
 
     public async Task<string> UserLogin(LoginCheck loginCheck)
     {
-        try
-        {
-            var user = new User()
-            {
-                Email = loginCheck.Email,
-                Password = loginCheck.Password
-            };
+        // Repository should now only fetch the user by email — no password in the query
+        var user = await _authRepositories.GetUserForLogin(loginCheck.Email!);
 
-            var result = await _authRepositories.LoginCheck(user);
-            var token = TokenGenerator(null, result);
-            return token;
-        }
-        catch (Exception)
+        if (user is null)
+            throw new UnauthorizedAccessException("Invalid email or password.");
+
+        var isPasswordValid = BCrypt.Net.BCrypt.Verify(loginCheck.Password, user.Password);
+
+        if (!isPasswordValid)
+            throw new UnauthorizedAccessException("Invalid email or password.");
+
+        var session = new UserSession
         {
-            throw;
-        }
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Email = user.Email,
+            Provider = user.Provider,
+            ThemePreference = user.ThemePreference,
+            Status = user.Status,
+            ProfilePath = user.ProfilePath
+        };
+
+        return TokenGenerator(null, session);
     }
 
     public async Task<UserSession> GetUserByEmail(string email)

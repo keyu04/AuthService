@@ -1,5 +1,6 @@
 namespace AuthMicroService.Controllers;
 
+using Asp.Versioning;
 using AuthMicroService.Common.Constants;
 using AuthMicroService.Common.Helpers;
 using AuthMicroService.DTOs;
@@ -7,71 +8,48 @@ using AuthMicroService.Models;
 using AuthMicroService.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 [ApiController]
-[Route("AuthService")]
-public class AuthController(IAuthService AuthMicroService) : ControllerBase
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/auth")]
+public class AuthController(IAuthService authService) : ControllerBase
 {
-    private readonly IAuthService _AuthMicroService = AuthMicroService;
+    private readonly IAuthService _authService = authService;
 
-    [HttpPost("UserRegister")]
+    [HttpPost("register")]
+    [EnableRateLimiting("auth-strict")]
     public async Task<ActionResult> UserRegister(UserRegister userRegister)
     {
-        try
-        {
-            var result = await _AuthMicroService.UserRegister(userRegister);
-            return Ok(ResponseHelper.Success<string>(result, LogConst.UserRegisterSuccess));
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, ResponseHelper.Failure(ex.Message));
-        }
+        var result = await _authService.UserRegister(userRegister);
+        return Ok(ResponseHelper.Success<string>(result, LogConst.UserRegisterSuccess));
     }
 
-    [HttpPost("GoogleLogin")]
+    [HttpPost("google-login")]
     public async Task<ActionResult> AuthGoogleLogin(AuthLoginModel authLoginModel)
     {
-        try
-        {
-            var result = await _AuthMicroService.GoogleAuthentication(authLoginModel);
-            if (result == string.Empty)
-                return NoContent();
-            return Ok(ResponseHelper.Success<string>(result, LogConst.GoogleLoginSuccess));
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, ResponseHelper.Failure(ex.Message));
-        }
+        var result = await _authService.GoogleAuthentication(authLoginModel);
+        if (result == string.Empty)
+            return NoContent();
+        return Ok(ResponseHelper.Success<string>(result, LogConst.GoogleLoginSuccess));
     }
 
-    [HttpPost("UserLogin")]
+    [HttpPost("login")]
+    [EnableRateLimiting("auth-strict")]
     public async Task<ActionResult> UserLogin(LoginCheck loginCheck)
     {
-        try
-        {
-            var result = await _AuthMicroService.UserLogin(loginCheck);
-            return Ok(ResponseHelper.Success<string>(result, LogConst.UserLoginSuccess));
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, ResponseHelper.Failure(ex.Message));
-        }
+        var result = await _authService.UserLogin(loginCheck);
+        return Ok(ResponseHelper.Success<string>(result, LogConst.UserLoginSuccess));
     }
 
     [Authorize]
-    [HttpGet("GetUserByEmail/{email}")]
-    public async Task<ActionResult> GetUserByEmail(string email)
+    [HttpGet("me")]
+    public async Task<ActionResult> GetCurrentUser()
     {
-        try
-        {
-            var user = await _AuthMicroService.GetUserByEmail(email);
-            if (user == null)
-                return NotFound();
-            return Ok(ResponseHelper.Success(user, LogConst.GetUserByEmailSuccess));
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, ResponseHelper.Failure(ex.Message));
-        }
+        var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+        var user = await _authService.GetUserByEmail(email!);
+        if (user is null)
+            return NotFound();
+        return Ok(ResponseHelper.Success(user, LogConst.GetUserByEmailSuccess));
     }
 }
