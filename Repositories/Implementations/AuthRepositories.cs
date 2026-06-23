@@ -69,7 +69,8 @@ public class AuthRepositories(AppDbContext appDbContext) : IAuthRepositories
             Provider = result.Provider,
             ThemePreference = result.ThemePreference,
             Status = result.Status,
-            ProfilePath = result.ProfilePath
+            ProfilePath = result.ProfilePath,
+            Role = result.Role
         };
     }
 }

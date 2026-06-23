@@ -62,6 +62,7 @@ public class AuthService(IAuthRepositories authRepositories) : IAuthService
             new Claim(ClaimTypes.Name, user?.FirstName ?? payload?.GivenName ?? string.Empty),
             new Claim(ClaimTypes.Surname, user?.LastName ?? payload?.FamilyName ?? string.Empty),
             new Claim(ClaimTypes.Email, user?.Email ?? payload?.Email ?? string.Empty),
+            new Claim(ClaimTypes.Role, user?.Role ?? "Customer"),
             new Claim("Provider", user?.Provider ?? string.Empty),
             new Claim("ThemePreference", user?.ThemePreference ?? string.Empty),
             new Claim("Status", user?.Status ?? string.Empty),
@@ -94,7 +95,8 @@ public class AuthService(IAuthRepositories authRepositories) : IAuthService
                 Provider = userRegister.Provider,
                 ProfilePath = userRegister.ProfilePath,
                 Email = userRegister.Email,
-                Password = BCrypt.Net.BCrypt.HashPassword(userRegister.Password)
+                Password = BCrypt.Net.BCrypt.HashPassword(userRegister.Password),
+                Role = "Customer"
             };
             await _authRepositories.UserRegister(user);
             return "User Registered Successfully";
@@ -126,7 +128,8 @@ public class AuthService(IAuthRepositories authRepositories) : IAuthService
             Provider = user.Provider,
             ThemePreference = user.ThemePreference,
             Status = user.Status,
-            ProfilePath = user.ProfilePath
+            ProfilePath = user.ProfilePath,
+            Role = user.Role
         };
 
         return TokenGenerator(null, session);
