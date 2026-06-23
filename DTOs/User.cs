@@ -39,4 +39,5 @@ public class UserSession
     public string? ThemePreference { set; get; }
     public string? Status { set; get; }
     public string? ProfilePath { set; get; }
+    public string Role { set; get; } = "Customer";
 }
